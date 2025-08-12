@@ -105,33 +105,12 @@ El detalle de parámetros y umbrales se encuentra en `ParametrosYsensores.md`.
 
 Vista de alto nivel del sistema:
 
-```
-[Sensores I2C]
-	- MPU6050 (IMU)
-	- (Opcional) Pantalla OLED/LED I2C
-
-[Sensores analógicos/digitales]
-	- Lluvia (A/D)
-	- Humedad de suelo YL-100 (A)
-	- Vibración (D)
-	- Temperatura (según modelo)
-
-[ESP32]
-	- Módulo de adquisición + filtrado
-	- Lógica de fusión y decisión
-	- Módulo de alertas (LED/Pantalla + Buzzer)
-	- (Opcional) Registro de eventos
-
-[Actuadores]
-	- LEDs/Pantalla (I2C/GPIO)
-	- Buzzer (GPIO/PWM)
-```
-
+![Diagrama de alto nievel](/Images/Diagrama%20de%20alto%20nivel%20challenge.png)
 Flujo de datos:
-1) Muestreo periódico de sensores (IMU a alta frecuencia; analógicos promediados).
-2) Filtrado y cálculo de deltas/tendencias (e.g., Δinclinación en ventanas de tiempo).
+1) Obtencio de datos periódico de sensores 
+2) Filtrado y cálculo de variables fisicas.
 3) Puntuación de riesgo por reglas y tabla de decisión.
-4) Accionamiento de alertas locales y registro de eventos.
+4) Accionamiento de alertas locales y generacion de eventos.
 
 Notas de implementación:
 - Evitar direcciones I2C en conflicto; documentar el escaneo de bus.
@@ -146,30 +125,23 @@ Notas de implementación:
 
 
 Módulos propuestos:
+![Diagrama animado](/Images/Diagrama%20animado.png)
+
 - Adquisición de datos: drivers I2C/ADC, temporización de muestreo.
 - Fusión/decisión: reglas por umbral.
 - Alertas: control de LED/pantalla y patrones de buzzer.
 
-Diagrama de flujo (texto):
-1) Inicio y auto-test de sensores.
+Diagrama de flujo (general):
+
+![Diagrama de flujo](/Images/Diagrama%20de%20flujo.png)
+1) Inicio.
 2) Lectura IMU (inclinación/accel) + conteo vibración + lluvia + humedad + temperatura.
 3) Filtrado y cálculo de indicadores (Δinclinación, activaciones/min, % humedad, intensidad lluvia).
 4) Cálculo de puntaje de riesgo y mapeo a estado.
-5) Actualizar actuadores y registrar evento si cambia el estado.
-6) Ajustar frecuencia de muestreo según estado (modo sleep inteligente en Normal).
+5) Actualizar actuadores y notificar evento si cambia el estado.
 
-Esquemático de hardware (alto nivel):
-- Bus I2C: ESP32 SDA/SCL a IMU y (opcional) pantalla I2C, con pull-ups compartidos.
-- Entradas analógicas: lluvia y YL-100 a ADC del ESP32 (referencia 3.3 V, rango 0–4095).
-- Entrada digital: vibración a GPIO con interrupción/anti-rebote por software.
-- Actuadores: buzzer a GPIO/PWM; LEDs a GPIO o pantalla I2C.
-- Alimentación: 5 V/3.3 V según módulos, regulación estable y común a sensores.
+Diagrama de flujo de algoritmo avanzado para deteccion de deslizamientos. 
 
-Estándares y buenas prácticas:
-- Frecuencias de muestreo documentadas; timestamps consistentes.
-- Filtrado anti-ruido y promedios móviles para analógicas.
-- Registros de eventos con marca temporal y estado.
-- Convenciones de código: separación por módulos, constantes/umbrales centralizadas.
 
 
 ## **Configuracion experimental** 
