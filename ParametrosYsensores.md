@@ -115,17 +115,17 @@ Temperatura normal:     > 15°C
 
 ### **Matriz de Decisión:**
 
-| Inclinación | Vibración | Humedad | Temperatura | **RESULTADO** |
-|-------------|-----------|---------|-------------|---------------|
-| ❌ | ❌ | ❌ | Normal | **NORMAL** 🟢 |
-| ✅ | ❌ | ❌ | Normal | **PRECAUCIÓN** 🟡 |
-| ❌ | ✅ | ❌ | Normal | **PRECAUCIÓN** 🟡 |
-| ❌ | ❌ | ✅ | Normal | **PRECAUCIÓN** 🟡 |
-| ✅ | ✅ | ❌ | Normal | **ALERTA** 🟠 |
-| ✅ | ❌ | ✅ | Normal | **ALERTA** 🟠 |
-| ❌ | ✅ | ✅ | Normal | **ALERTA** 🟠 |
-| ✅ | ✅ | ✅ | Normal | **EMERGENCIA** 🔴 |
-| Cualquiera | Cualquiera | Cualquiera | < 5°C | **+1 Nivel** ❄️ |
+| Vibración | Humedad | Temperatura | **RESULTADO** |
+|-----------|---------|-------------|---------------|
+| ❌ | ❌ | Normal | **NORMAL** 🟢 |
+| ✅ | ❌ | Normal | **PRECAUCIÓN** 🟡 |
+| ❌ | ✅ | Normal | **PRECAUCIÓN** 🟡 |
+| ❌ | ❌ | Normal | **PRECAUCIÓN** 🟡 |
+| ✅ | ✅ | Normal | **ALERTA** 🟠 |
+| ✅ | ❌ | Normal | **ALERTA** 🟠 |
+| ❌ | ✅ | Normal | **ALERTA** 🟠 |
+| ✅ | ✅ | Normal | **EMERGENCIA** 🔴 |
+| Cualquiera | Cualquiera | < 5°C | **+1 Nivel** ❄️ |
 
 ### **Código de Lógica (Pseudocódigo):**
 

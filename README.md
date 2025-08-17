@@ -1,12 +1,11 @@
-
 # **Challenge #1**
 
 
-Sistema IoT para monitoreo temprano de deslizamientos de tierra usando un ESP32. Se integran sensores vía I2C y señales analógicas para medir inclinación, vibración, lluvia, humedad de suelo y temperatura. La lógica de fusión calcula un nivel de riesgo y activa alertas visuales y sonoras.
+Sistema IoT para monitoreo temprano de deslizamientos de tierra usando un ESP32. Se integran sensores vía I2C y señales analógicas para monitorear vibración, lluvia, humedad de suelo y temperatura. La lógica de fusión calcula un nivel de riesgo y activa alertas visuales y sonoras.
 
 - Objetivo: detectar cambios de inclinación y condiciones ambientales que indiquen riesgo de deslizamiento y notificar a tiempo.
 - Plataforma: ESP32 (3.3 V), bus I2C compartido para sensores/actuadores compatibles y entradas analógicas para módulos que lo requieran.
-- Sensores: MPU6050 (IMU), vibración (switch), lluvia (módulo analógico/digital), humedad de suelo (YL-100), temperatura ambiente.
+- Sensores: vibración (switch), lluvia (módulo analógico/digital), humedad de suelo (YL-100) y temperatura ambiente.
 - Actuadores: indicadores LED/pantalla I2C y buzzer piezoeléctrico.
 - Comunicación interna: I2C + GPIO analógicos/digitales. 
 
@@ -78,11 +77,10 @@ La combinación de inclinación, vibración y humedad es un indicador fiable de 
 La solución integra sensores en un bus I2C y entradas analógicas, ejecuta una lógica de fusión de datos recompilados por distintos sensores especificos a cada variable fisica, para puntuar el riesgo y activa actuadores según el nivel resultante. Se contemplan módulos de adquisición, filtrado, decisión y notificación.
 
 Sensores considerados:
-- MPU6050 (I2C): inclinación, aceleración y velocidad angular.
-- Vibración (digital): conteo de eventos/activaciones por minuto.
-- Lluvia (analógica/digital): intensidad y estado de lluvia.
-- Humedad de suelo YL-100 (analógica): % relativo de humedad/saturación.
-- Temperatura (interfaz según sensor disponible): °C y gradientes.
+- Vibración (switch): conteo de activaciones por minuto.
+- Lluvia (módulo analógico/digital): intensidad y estado de lluvia.
+- Humedad de suelo (YL-100): medición de humedad relativa.
+- Temperatura ambiente: medición de temperatura y gradientes.
 
 Actuadores considerados:
 - Pantalla/indicadores LED (idealmente I2C u opcionalmente GPIO).
@@ -135,8 +133,8 @@ Diagrama de flujo (general):
 
 ![Diagrama de flujo](/Images/Diagrama%20de%20flujo.png)
 1) Inicio.
-2) Lectura IMU (inclinación/accel) + conteo vibración + lluvia + humedad + temperatura.
-3) Filtrado y cálculo de indicadores (Δinclinación, activaciones/min, % humedad, intensidad lluvia).
+2) Lectura de vibración + lluvia + humedad + temperatura.
+3) Filtrado y cálculo de indicadores (activaciones/min, % humedad, intensidad lluvia).
 4) Cálculo de puntaje de riesgo y mapeo a estado.
 5) Actualizar actuadores y notificar evento si cambia el estado.
 
@@ -220,6 +218,18 @@ Retos y trabajo futuro:
 
 - Parámetros, umbrales y lógica detallada: `ParametrosYsensores.md`.
 - Enunciado del reto: `Enunciado_Chx1_IoT_252 1.pdf`.
-- Referencias adicionales: por definir (TBD).
+
+### Referencias consultadas
+
+- El Moulat, M.; Debauche, O.; Mahmoudi, S.; Aït Brahim, L.; Manneback, P.; Lebeau, F. (2018). "Monitoring System Using Internet of Things For Potential Landslides". Procedia Computer Science, Vol. 134, pp. 26-34. DOI: 10.1016/j.procs.2018.07.140. Breve: Propuesta de arquitectura IoT (sensores, adquisición y procesamiento) para monitoreo y alerta temprana de deslizamientos. Enlace: https://doi.org/10.1016/j.procs.2018.07.140
+- Soegoto, E. S.; Fauzi, F. A.; Luckyardi, S. (2021). "Internet of things for flood and landslide early warning". Journal of Physics: Conference Series 1764 012190. DOI: 10.1088/1742-6596/1764/1/012190. Breve: Uso de IoT como soporte a sistemas de alerta temprana para inundaciones y deslizamientos en contextos turísticos. Enlace: https://doi.org/10.1088/1742-6596/1764/1/012190
+- Bhardwaj, R. B. (2021). "Landslide Detection System Based on IOT". (Preprint / artículo en ResearchGate). Breve: Implementación conceptual de un sistema de detección de deslizamientos apoyado en sensores IoT para monitoreo continuo. Enlace: https://www.researchgate.net/publication/350069472_Landslide_Detection_System_Based_on_IOT
+- (Vladimir Henao-Céspedes1, Yeison Alberto Garcés-Gómez1, María Nancy Marín Olaya). (2023). "Landslide early warning systems: a perspective from the
+internet of things. Documento PDF (cloudfront) – revisión/perspectiva sobre sistemas de alerta temprana de deslizamientos. [IJECE](https://d1wqtxts1xzle7.cloudfront.net/97071057/99_28430_EMr_15sep22_16Mei22_20_K-libre.pdf?1673336585=&response-content-disposition=inline%3B+filename%3DLandslide_early_warning_systems_a_perspe.pdf&Expires=1755471679&Signature=coGfKU1yH3wYy5eZ718036Jp8vyTLqFuNkJg2iGGS791ty~B3o3G~D65w1qnMOFUdgNy15BU3Eu0vTImXbbM9CIyMSG3p1Mrp-YzvgIxkFMKQ2Yxvwj5v7wIu35TWymnISvDR3wBdtQxeuRUMkHUIIA7ldOq6qMIlDuxhZqT2EXRZJ~uQhmJ8loqBvMc3R1Mx4i8nKPBLnnpPgzkvaQZQYNhfTXlKO7wSouiI1wnVq6j6JPzEdlrD3vIbyLw5D5-92W-2rLql~Nqjjjdl-TTqjTwxPRrGemfVK-WjGdyZ2cm2l0YL1V4-vEHodEswrOsGrjNaPTtbB4KGUxH2K04yA__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA)
+- (Natural Hazards) DOI: 10.1007/s11069-022-05524-3. (2022). A first step towards a IoT‑based local early warning system 
+for an unsaturated slope in Norway y Luca Piciullo, Vittoria Capobianco y Hakon Heyerdahl `Investigacion/s11069-022-05524-3.pdf`. Breve: Artículo de la revista Natural Hazards relacionado con evaluación/gestión de riesgo de deslizamientos. 
+
+
+
 
 </details>
