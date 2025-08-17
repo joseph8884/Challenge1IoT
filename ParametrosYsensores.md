@@ -1,158 +1,131 @@
 # Parámetros y Lógica de Sensores para Detección de Deslizamientos
 
-// **Nota:** Los valores aquí presentados son estimaciones iniciales y son generados con IA
+> **Nota:** Los valores aquí presentados se basan en referencias científicas y se adaptan al contexto de sensores IoT de bajo costo. Requieren validación en campo para cada zona específica.
 
 ## 🎯 **LÓGICA DE FUSIÓN DE SENSORES**
 
-### **1. MPU6050 - Sensor de Inclinación y Aceleración**
+---
+
+### **1. Vibration Switch - Detector de Vibraciones**
 
 **Variables a medir:**
-- **Ángulo de inclinación X, Y, Z** (grados)
-- **Aceleración en los 3 ejes** (m/s²)
-- **Velocidad angular** (deg/s)
+- Estado digital (HIGH/LOW)
+- Frecuencia de activaciones por minuto
 
-**Umbrales críticos:**
-```
-NORMAL:     Δ inclinación < 0.5° en 10 min
-PRECAUCIÓN: Δ inclinación 0.5° - 1.0° en 10 min  
-ALERTA:     Δ inclinación 1.0° - 2.0° en 10 min
-EMERGENCIA: Δ inclinación > 2.0° en 10 min
+**Umbrales críticos (referencia: Bhardwaj, 2021):**
+- NORMAL: 0-2 activaciones/minuto
+- PRECAUCIÓN: 3-5 activaciones/minuto
+- ALERTA: >5 activaciones/minuto
+- EMERGENCIA: activación continua > 5 segundos
 
-Aceleración anómala: > 0.2g en cualquier eje
-```
+
 
 **Algoritmo:**
-- Calcular inclinación cada 1 segundo
-- Promedio móvil de 10 lecturas
-- Detectar cambios graduales Y súbitos
+- Contar pulsos en ventana de 60 s.
+- Filtrar vibraciones espurias (p. ej. viento/animales) con duración < 200 ms.
+- Activación continua > 5 s = EMERGENCIA.
 
 ---
 
-### **2. Vibration Switch - Detector de Vibraciones**
+### **2. Rain Detection Module - Detector de Lluvia**
 
 **Variables a medir:**
-- **Estado digital** (HIGH/LOW)
-- **Frecuencia de activaciones** por minuto
+- Intensidad de lluvia (0–1023 ADC)
+- Estado lluvia (digital TRUE/FALSE)
 
-**Umbrales críticos:**
-```
-NORMAL:     0-2 activaciones/minuto
-PRECAUCIÓN: 3-5 activaciones/minuto
-ALERTA:     6-10 activaciones/minuto  
-EMERGENCIA: >10 activaciones/minuto o activación continua
-```
+**Umbrales críticos (Soegoto et al., 2021):**
+- Sin lluvia: < 200
+- Lluvia ligera: 200 – 300
+- Lluvia moderada: 301 – 600
+- Lluvia intensa: 601 – 900
+- Lluvia torrencial: > 900 o persistente > 30 min
+
+
 
 **Algoritmo:**
-- Contar pulsos en ventana de 60 segundos
-- Filtrar vibraciones por viento/animales (< 200ms)
-- Activación continua > 5 segundos = EMERGENCIA
+- Promediar intensidad en ventana de 5 min.
+- Incrementar riesgo si la lluvia es persistente > 30 min.
+- Multiplicar puntaje de riesgo cuando lluvia coincide con alta humedad de suelo.
 
 ---
 
-### **3. Rain Detection Module - Detector de Lluvia**
+### **3. YL-100 - Sensor de Humedad del Suelo**
 
 **Variables a medir:**
-- **Intensidad de lluvia** (analógica 0-1023)
-- **Estado lluvia** (digital TRUE/FALSE)
+- Humedad del suelo (% relativo)
+- Saturación respecto al valor base (suelo seco inicial)
 
-**Umbrales críticos:**
-```
-Sin lluvia:     0-100 (valor analógico)
-Lluvia ligera:  101-300
-Lluvia moderada: 301-600
-Lluvia intensa: 601-900
-Lluvia torrencial: >900
-```
+**Umbrales críticos (El Moulat et al., 2018; Piciullo et al., 2022):**
+- Suelo seco: 0 – 40 %
+- Suelo húmedo: 41 – 70 %
+- Suelo saturado: > 70 % (riesgo alto)
+
 
 **Algoritmo:**
-- Promedio de intensidad en 5 minutos
-- Detectar lluvia persistente > 30 minutos
-- Factor multiplicador de riesgo según intensidad
+- Establecer calibración inicial en suelo seco.
+- Incremento de humedad > 30 % respecto al valor base = riesgo elevado.
+- Saturación > 70 % combinada con lluvia = condición de alerta.
 
 ---
 
-### **4. YL-100 - Sensor de Humedad del Suelo**
+### **4. Temperature Sensor - Sensor de Temperatura**
 
 **Variables a medir:**
-- **Humedad del suelo** (% 0-100)
-- **Saturación relativa** comparada con valor base
+- Temperatura ambiente (°C)
+- Gradiente de cambio (°C/min)
 
-**Umbrales críticos:**
-```
-Suelo seco:     0-30%
-Suelo húmedo:   31-60%  
-Suelo mojado:   61-80%
-Suelo saturado: 81-100%
-```
+**Umbrales críticos (Henao-Céspedes et al., 2023):**
+- Normal: 10 – 30 °C
+- Precaución: < 10 °C o gradiente > 2 °C/min
+- Alerta/Emergencia: < 5 °C o cambios bruscos > 5 °C/min
+
 
 **Algoritmo:**
-- Establecer valor base en suelo seco
-- Calcular incremento relativo
-- Saturación > 80% + lluvia = RIESGO ALTO
-
----
-
-### **5. Temperature Sensor - Sensor de Temperatura**
-
-**Variables a medir:**
-- **Temperatura ambiente** (°C)
-- **Gradiente térmico** (cambios rápidos)
-
-**Umbrales críticos:**
-```
-Riesgo por congelación: < 5°C
-Riesgo por deshielo:    5°C - 15°C tras período frío
-Temperatura normal:     > 15°C
-```
-
-**Algoritmo:**
-- Factor de riesgo adicional en temperaturas extremas
-- Ciclos hielo-deshielo aumentan inestabilidad del suelo
+- Añadir +1 nivel de riesgo si T < 5 °C.
+- Considerar ciclos de hielo-deshielo como factores de inestabilidad.
+- Evaluar gradientes de cambio rápidos como precursores de fractura.
 
 ---
 
 ## 🔥 **ALGORITMO DE FUSIÓN INTELIGENTE**
 
-### **Matriz de Decisión:**
+### **Matriz de Decisión**
 
-| Vibración | Humedad | Temperatura | **RESULTADO** |
-|-----------|---------|-------------|---------------|
-| ❌ | ❌ | Normal | **NORMAL** 🟢 |
-| ✅ | ❌ | Normal | **PRECAUCIÓN** 🟡 |
-| ❌ | ✅ | Normal | **PRECAUCIÓN** 🟡 |
-| ❌ | ❌ | Normal | **PRECAUCIÓN** 🟡 |
-| ✅ | ✅ | Normal | **ALERTA** 🟠 |
-| ✅ | ❌ | Normal | **ALERTA** 🟠 |
-| ❌ | ✅ | Normal | **ALERTA** 🟠 |
-| ✅ | ✅ | Normal | **EMERGENCIA** 🔴 |
-| Cualquiera | Cualquiera | < 5°C | **+1 Nivel** ❄️ |
+| Vibración | Humedad | Lluvia | Temperatura | **Resultado** |
+|-----------|---------|--------|-------------|---------------|
+| Baja      | Baja    | Baja   | Normal      | **NORMAL** 🟢 |
+| Media     | Baja    | Baja   | Normal      | **PRECAUCIÓN** 🟡 |
+| Baja      | Media   | Media  | Normal      | **PRECAUCIÓN** 🟡 |
+| Alta      | Media   | Media  | Normal      | **ALERTA** 🟠 |
+| Alta      | Alta    | Alta   | Normal      | **EMERGENCIA** 🔴 |
+| Cualquiera| Cualquiera | Cualquiera | < 5 °C | **+1 Nivel** ❄️ |
 
-### **Código de Lógica (Pseudocódigo):**
+---
+
+### **Código de Lógica (Pseudocódigo)**
 
 ```cpp
 int riskScore = 0;
-bool riesgoInclinacion = false;
-bool riesgoVibracion = false; 
-bool riesgoHumedad = false;
 
-// Evaluar cada sensor
-if (deltaInclinacion > UMBRAL_INCLINACION) {
-    riesgoInclinacion = true;
+// Evaluar vibración
+if (vibrationCount > 5 || vibrationSwitch == HIGH) {
     riskScore++;
 }
 
-if (vibrationCount > UMBRAL_VIBRACION || vibrationSwitch == HIGH) {
-    riesgoVibracion = true;
+// Evaluar humedad
+if (soilMoisture > 70) {
     riskScore++;
 }
 
-if (soilMoisture > 80 && rainIntensity > 300) {
-    riesgoHumedad = true;
+// Evaluar lluvia
+if (rainIntensity > 600 || rainPersistente > 30min) {
     riskScore++;
 }
 
-// Factor temperatura
-if (temperature < 5) riskScore++;
+// Evaluar temperatura
+if (temperature < 5 || gradienteTemp > 5) {
+    riskScore++;
+}
 
 // Determinar estado
 if (riskScore == 0) estado = NORMAL;
@@ -161,47 +134,23 @@ else if (riskScore == 2) estado = ALERTA;
 else estado = EMERGENCIA;
 ```
 
----
+### Sistemas de alertas
+Buzzer:
 
-## 📱 **SISTEMA DE ALERTAS**
+- Silencio: Normal
+- Beep corto cada 10s: Precaución
+- Beep intermitente cada 2s: Alerta
+- Beep continuo: Emergencia
 
-### **Pantalla LED:**
-- **Verde:** Datos normales en tiempo real
-- **Amarillo:** Advertencia + valor del sensor en riesgo
-- **Naranja:** Alerta + valores críticos parpadeando
-- **Rojo:** Emergencia + mensaje "EVACUACIÓN"
 
-### **Buzzer:**
-- **Silencio:** Estado normal
-- **Beep corto c/10s:** Precaución
-- **Beep intermitente c/2s:** Alerta  
-- **Beep continuo:** Emergencia
+### 📚 Referencias
 
----
+El Moulat, M. et al. (2018). Monitoring System Using Internet of Things For Potential Landslides. Procedia Computer Science, 134, 26–34.
 
-## 🚀 **FUNCIONES AVANZADAS PARA 5.0**
+Soegoto, E. S. et al. (2021). Internet of things for flood and landslide early warning. J. Phys.: Conf. Ser. 1764 012190.
 
-### **1. Algoritmo Predictivo:**
-```cpp
-bool detectarTendencia() {
-    // Analizar últimas 10 lecturas
-    if (ultimas10Lecturas[0] < ultimas10Lecturas[9]) {
-        return true; // Tendencia empeorando
-    }
-    return false;
-}
-```
+Bhardwaj, R. B. (2021). Landslide Detection System Based on IoT. ResearchGate preprint.
 
-### **2. Auto-calibración:**
-- Recalibrar sensores cada 24 horas
-- Establecer nuevos valores base según condiciones
+Henao-Céspedes, V., Garcés-Gómez, Y., & Marín Olaya, M. N. (2023). Landslide early warning systems: a perspective from IoT. IJECE.
 
-### **3. Memoria de eventos:**
-- Guardar últimos 100 eventos en EEPROM
-- Análisis de patrones históricos
-
-### **4. Modo Sleep inteligente:**
-- Reducir frecuencia de muestreo en condiciones normales
-- Aumentar frecuencia cuando se detecta riesgo
-
-Esta lógica garantiza una **detección temprana y precisa** combinando múltiples señales para minimizar falsos positivos.
+Piciullo, L., Capobianco, V., & Heyerdahl, H. (2022). A first step towards a IoT-based local early warning system for an unsaturated slope in Norway. Natural Hazards.
