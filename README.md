@@ -1,12 +1,13 @@
 # **Challenge #1**
 
-Sistema IoT para monitoreo temprano de deslizamientos de tierra usando un ESP32. Se integran sensores vía I2C y señales analógicas para monitorear vibración, lluvia, humedad de suelo y temperatura. La lógica de fusión calcula un nivel de riesgo y activa alertas visuales y sonoras.
+Sistema IoT para monitoreo temprano de deslizamientos de tierra usando un ESP32. Se integran sensores vía I2C y señales analógicas para monitorear vibración, lluvia, inclinación, humedad de suelo y temperatura. La lógica de fusión calcula un nivel de riesgo y activa alertas visuales y sonoras.
 
 - Objetivo: detectar cambios de inclinación y condiciones ambientales que indiquen riesgo de deslizamiento y notificar a tiempo.
 - Plataforma: ESP32 (3.3 V), bus I2C compartido para sensores/actuadores compatibles y entradas analógicas para módulos que lo requieran.
 - Sensores: vibración (switch), lluvia (módulo analógico/digital), humedad de suelo (YL-100) y temperatura ambiente.
 - Actuadores: indicadores LED/pantalla I2C y buzzer piezoeléctrico.
 - Comunicación interna: I2C + GPIO analógicos/digitales. 
+- Motores para simular movimiento sismico: El sistema incluye dos motores de vibracion para simular un movimiento sismico. 
 
 <details>
 <summary>
@@ -35,7 +36,7 @@ Sistema IoT para monitoreo temprano de deslizamientos de tierra usando un ESP32.
 # **Resumen General**
 </summary>
 
-Se propone un sistema de monitoreo continuo para zonas con susceptibilidad a deslizamientos, como el propuesto en Tabio y Cajica. El ESP32 integra múltiples sensores para detectar inclinaciones del terreno, vibraciones anómalas y condiciones de humedad/lluvia que incrementan el riesgo. Con una lógica de fusión, el sistema clasifica el estado en Normal, Precaución, Alerta o Emergencia y activa actuadores (pantalla/LED y buzzer) para aviso local. El diseño prioriza bajo consumo, robustez y facilidad de despliegue.
+Se propone un sistema de monitoreo continuo para zonas con susceptibilidad a deslizamientos, como el propuesto en Tabio y Cajica. El ESP32 integra múltiples sensores para detectar inclinaciones del terreno, vibraciones anómalas y condiciones de humedad/lluvia que incrementan el riesgo. Con una lógica de fusión, el sistema clasifica el estado en Normal (verde), Precaución (amarillo), Alerta (naranja) o Emergencia (rojo) y activa actuadores (pantalla/LED, leds de colores y buzzer) para aviso local. El diseño prioriza bajo consumo, robustez y facilidad de despliegue.
 
 </details>
 
@@ -91,6 +92,7 @@ La solución integra sensores en un bus I2C y entradas analógicas, ejecuta una 
 
 Sensores considerados:
 - Vibración (switch): conteo de activaciones por minuto.
+- Inclinacion (MPU6050): inclinacion en grados
 - Lluvia (módulo analógico/digital): intensidad y estado de lluvia.
 - Humedad de suelo (YL-100): medición de humedad relativa.
 - Temperatura ambiente: medición de temperatura y gradientes.
@@ -98,6 +100,7 @@ Sensores considerados:
 Actuadores considerados:
 - Pantalla/indicadores LED (idealmente I2C u opcionalmente GPIO).
 - Buzzer (GPIO/PWM) con distintos patrones según el nivel.
+- Leds: verde (normal), amarillo (precaucion), naranja (alerta), rojo (emergencia)
 
 El detalle de parámetros y umbrales se encuentra en `ParametrosYsensores.md`.
 
@@ -125,11 +128,7 @@ Notas de implementación:
 - Mantener cables I2C cortos o usar topología adecuada para ambientes ruidosos.
 
 ## **Desarrollo tecnico modular**
-- Diagramas modulares
-- Diagrama de flujo
-- Esquematico de hardware desarrollado 
-- Estandares de diseño de ingenieria aplicados
-Diagrama de conexiones
+
 ![Diagrama de conexiones](/Images/conexionesesp32.svg)
 
 Módulos propuestos:
@@ -149,7 +148,6 @@ Diagrama de flujo (general):
 4) Cálculo de puntaje de riesgo y mapeo a estado.
 5) Actualizar actuadores y notificar evento si cambia el estado.
 
-Diagrama de flujo de algoritmo avanzado para detección de deslizamientos. 
 <details>
 <summary>
 
@@ -223,18 +221,18 @@ L:xxxx  H:xx T:xx
 <summary>
 
 # **Resultados**
-- Análisis
 </summary>
 
 ## **Arquitectura del Sistema Implementada**
 
-El sistema desarrollado integra exitosamente cuatro sensores principales en una arquitectura basada en ESP32:
+El sistema desarrollado integra exitosamente 5 sensores principales en una arquitectura basada en ESP32:
 
 ### **Sensores Implementados:**
 - **Vibration Switch**: Detecta movimientos sísmicos y vibraciones anómalas del terreno
 - **Rain Detection Module**: Monitorea intensidad de lluvia mediante sensor analógico/digital
 - **YL-100 Soil Moisture**: Mide humedad del suelo en porcentaje relativo
 - **Temperature Sensor (DS18B20)**: Registra temperatura ambiente y gradientes térmicos
+- **MPU6050 (gyro sensor)**: Mide el nivel de inclinacion del suelo.
 
 ### **Protocolo de Comunicación:**
 - **Bus I2C** para LCD (0x27/0x3F) y comunicación entre dispositivos
@@ -254,16 +252,21 @@ Humedad: 0-40% (Seco) → 40-70% (Húmedo) → >70% (Saturado)
 Temperatura: 10-30°C (Normal) → <10°C o gradiente >2°C/min (Riesgo)
 ```
 
-### **Matriz de Decisión Simplificada:**
-Sin el sensor MPU6050, la lógica se concentra en tres variables principales:
+### **Matriz de Decisión Completa:**
+La lógica de fusión integra cinco variables principales del sistema:
 
-| Vibración | Humedad | Lluvia | Resultado |
-|-----------|---------|--------|-----------|
-| Baja | Baja | Baja | **NORMAL** 🟢 |
-| Alta | Baja | Baja | **PRECAUCIÓN** 🟡 |
-| Baja | Alta | Moderada | **PRECAUCIÓN** 🟡 |
-| Alta | Alta | Moderada | **ALERTA** 🟠 |
-| Alta | Alta | Torrencial | **EMERGENCIA** 🔴 |
+| Inclinación | Vibración | Humedad | Lluvia | Temperatura | Resultado |
+|-------------|-----------|---------|--------|-------------|-----------|
+| Normal | Baja | Baja | Baja | Normal | **NORMAL** 🟢 |
+| Normal | Alta | Baja | Baja | Normal | **PRECAUCIÓN** 🟡 |
+| Normal | Baja | Alta | Moderada | Normal | **PRECAUCIÓN** 🟡 |
+| Anómala | Baja | Baja | Baja | Normal | **PRECAUCIÓN** 🟡 |
+| Normal | Baja | Baja | Baja | Riesgo | **PRECAUCIÓN** 🟡 |
+| Normal | Alta | Alta | Moderada | Normal | **ALERTA** 🟠 |
+| Anómala | Alta | Baja | Moderada | Normal | **ALERTA** 🟠 |
+| Normal | Alta | Alta | Torrencial | Riesgo | **ALERTA** 🟠 |
+| Anómala | Alta | Alta | Moderada | Normal | **EMERGENCIA** 🔴 |
+| Anómala | Alta | Alta | Torrencial | Riesgo | **EMERGENCIA** 🔴 |
 
 ## **Resultados de Funcionamiento**
 
@@ -301,11 +304,6 @@ Sin el sensor MPU6050, la lógica se concentra en tres variables principales:
 - **Funciones de control**: `simulate_quake(1)` y `simulate_quake(2)`
 - **Duración programable**: 5-10 segundos por evento sísmico
 
-### **Resultados de Calibración:**
-- **YL-100**: Rango 0-1023 ADC, calibrado para suelo local (seco/saturado)
-- **Lluvia**: Umbral 200 ADC para detección, >600 para emergencia
-- **Vibración**: Filtrado <200ms para eliminar ruido ambiental
-- **Temperatura**: Sensibilidad ±0.5°C, detección de gradientes >2°C/min
 
 ## **Observaciones del Comportamiento**
 
@@ -345,7 +343,7 @@ Sin el sensor MPU6050, la lógica se concentra en tres variables principales:
 El diseño basado en ESP32 demostró ser una plataforma robusta y versátil para aplicaciones IoT de monitoreo ambiental. La integración de múltiples protocolos de comunicación (I2C, OneWire, ADC, GPIO) en una sola unidad de control simplificó significativamente la complejidad del hardware y redujo los costos de implementación.
 
 #### **2. Algoritmo de Fusión Efectivo**
-La eliminación del sensor MPU6050 obligó a repensar la lógica de fusión, resultando en un algoritmo más robusto que depende de tres variables críticas: vibración, humedad del suelo y precipitación. Esta simplificación paradójicamente mejoró la confiabilidad del sistema al reducir la complejidad y los puntos de fallo potenciales.
+Algoritmo robusto que depende de cuatro variables críticas: vibración,inclinación, humedad del suelo y precipitación.
 
 #### **3. Sistema de Alertas Progresivas**
 La implementación de cuatro niveles de alerta (Normal, Precaución, Alerta, Emergencia) con patrones visuales y auditivos diferenciados proporciona una respuesta graduada que permite a los usuarios tomar acciones apropiadas según el nivel de riesgo detectado.
@@ -353,32 +351,17 @@ La implementación de cuatro niveles de alerta (Normal, Precaución, Alerta, Eme
 #### **4. Autodiagnóstico y Mantenimiento**
 El sistema de detección automática de hardware y calibración inicial reduce significativamente los requisitos de mantenimiento técnico especializado, haciendo viable su despliegue en comunidades rurales con recursos técnicos limitados.
 
-### **Validación de Hipótesis Iniciales**
-
-#### **Efectividad de la Fusión de Sensores**
-Los resultados confirman que la combinación de múltiples variables ambientales (vibración + humedad + lluvia + temperatura) proporciona una detección más precisa que cualquier sensor individual. La sinergia entre humedad del suelo saturada y lluvia intensa demostró ser especialmente predictiva de condiciones de riesgo elevado.
-
-#### **Viabilidad de Sistemas Locales**
-El sistema demostró capacidad de operación autónoma sin dependencia de conectividad externa, validando el concepto de sistemas de alerta temprana locales para comunidades en zonas de difícil acceso o con infraestructura de comunicaciones limitada.
-
-#### **Costo-Beneficio de Componentes Comerciales**
-El uso de sensores comerciales de bajo costo (YL-100, detectores de lluvia, switches de vibración) resultó en un sistema funcional con un costo total estimado <$100 USD, haciendo viable su replicación masiva.
-
 ## **Retos Identificados y Superados**
 
 ### **1. Adaptación por Ausencia de MPU6050**
-**Reto**: La no disponibilidad del sensor de inclinación obligó a rediseñar completamente la lógica de detección.
+**Reto**: En el kit entregado para la clase, este sensor no leia los datos completamente.
 **Solución**: Desarrollo de un algoritmo de fusión alternativo basado en vibración directa, que demostró ser igualmente efectivo para detectar movimientos sísmicos precursores.
 
 ### **2. Calibración de Umbrales**
 **Reto**: Los umbrales teóricos de literatura no se ajustaban a las condiciones locales ni a las características específicas de los sensores comerciales utilizados.
 **Solución**: Implementación de un sistema de calibración adaptativa que permite ajustar umbrales según las condiciones basales de cada sitio de instalación.
 
-### **3. Filtrado de Falsos Positivos**
-**Reto**: Factores ambientales como viento, tráfico vehicular y actividad animal generaban falsas alarmas.
-**Solución**: Desarrollo de filtros temporales y algoritmos de persistencia que distinguen entre eventos significativos y ruido ambiental.
-
-### **4. Integración de Hardware Heterogéneo**
+### **3. Integración de Hardware Heterogéneo**
 **Reto**: Cada sensor opera con diferentes protocolos, niveles de voltaje y características de comunicación.
 **Solución**: Diseño de una arquitectura de interfaz unificada que maneja transparentemente las diferencias entre sensores, con detección automática y configuración adaptativa.
 
@@ -401,39 +384,7 @@ El uso de sensores comerciales de bajo costo (YL-100, detectores de lluvia, swit
 - **Portal web**: Dashboard para análisis histórico y gestión de múltiples dispositivos
 - **API REST**: Interfaz estándar para integración con sistemas de gestión de emergencias
 
-### **Investigación y Desarrollo (Mediano Plazo)**
 
-#### **1. Machine Learning y Predicción**
-- **Algoritmos predictivos**: Desarrollo de modelos ML para predicción de eventos basados en patrones históricos
-- **Análisis de tendencias**: Implementación de algoritmos de detección de patrones a largo plazo
-- **Calibración automática**: Sistema de ajuste automático de umbrales basado en aprendizaje estadístico
-
-#### **2. Expansión de Sensores**
-- **Sensores geofísicos**: Integración de acelerómetros de alta precisión y sismógrafos de bajo costo
-- **Monitoreo hidrogeológico**: Adición de sensores de presión piezométrica y flujo subterráneo
-- **Sensores meteorológicos**: Expansión a medición de presión atmosférica, humedad relativa y velocidad del viento
-
-#### **3. Redes de Sensores Distribuidos**
-- **Topología mesh**: Desarrollo de redes de múltiples nodos para cobertura de áreas extensas
-- **Fusión de datos distribuida**: Algoritmos de consenso para procesamiento colaborativo entre nodos
-- **Redundancia y tolerancia a fallos**: Sistemas de respaldo automático ante fallas de nodos individuales
-
-### **Validación y Despliegue (Largo Plazo)**
-
-#### **1. Estudios de Campo Extensivos**
-- **Validación en múltiples sitios**: Pruebas en diferentes condiciones geológicas y climáticas
-- **Correlación con eventos reales**: Comparación con registros históricos de deslizamientos
-- **Colaboración científica**: Partnerships con instituciones geológicas para validación científica
-
-#### **2. Escalamiento Comunitario**
-- **Programa piloto**: Despliegue en comunidades vulnerables de Cundinamarca y Boyacá
-- **Capacitación local**: Programas de entrenamiento para operación y mantenimiento comunitario
-- **Integración institucional**: Articulación con sistemas de gestión de riesgo municipales y departamentales
-
-#### **3. Estandarización y Certificación**
-- **Normas técnicas**: Desarrollo de estándares para sistemas IoT de alerta temprana
-- **Certificación de calidad**: Cumplimiento con normas internacionales de sistemas críticos
-- **Transferencia tecnológica**: Licenciamiento para producción comercial y distribución masiva
 
 ## **Impacto Esperado y Sostenibilidad**
 
