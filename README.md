@@ -7,7 +7,7 @@ Sistema IoT para monitoreo temprano de deslizamientos de tierra usando un ESP32.
 - Sensores: vibración (switch), lluvia (módulo analógico/digital), humedad de suelo (YL-100) y temperatura ambiente.
 - Actuadores: indicadores LED/pantalla I2C y buzzer piezoeléctrico.
 - Comunicación interna: I2C + GPIO analógicos/digitales. 
-- Motores para simular movimiento sismico: El sistema incluye dos motores de vibracion para simular un movimiento sismico. 
+- Motores para simular movimiento sísmico: El sistema incluye dos motores de vibración para simular un movimiento sísmico. 
 
 <details>
 <summary>
@@ -36,7 +36,7 @@ Sistema IoT para monitoreo temprano de deslizamientos de tierra usando un ESP32.
 # **Resumen General**
 </summary>
 
-Se propone un sistema de monitoreo continuo para zonas con susceptibilidad a deslizamientos, como el propuesto en Tabio y Cajica. El ESP32 integra múltiples sensores para detectar inclinaciones del terreno, vibraciones anómalas y condiciones de humedad/lluvia que incrementan el riesgo. Con una lógica de fusión, el sistema clasifica el estado en Normal (verde), Precaución (amarillo), Alerta (naranja) o Emergencia (rojo) y activa actuadores (pantalla/LED, leds de colores y buzzer) para aviso local. El diseño prioriza bajo consumo, robustez y facilidad de despliegue.
+Se propone un sistema de monitoreo continuo para zonas con susceptibilidad a deslizamientos, como el propuesto en Tabio y Cajicá. El ESP32 integra múltiples sensores para detectar inclinaciones del terreno, vibraciones anómalas y condiciones de humedad/lluvia que incrementan el riesgo. Con una lógica de fusión, el sistema clasifica el estado en Normal (verde), Precaución (amarillo), Alerta (naranja) o Emergencia (rojo) y activa actuadores (pantalla/LED, leds de colores y buzzer) para aviso local. El diseño prioriza bajo consumo, robustez y facilidad de despliegue.
 
 </details>
 
@@ -88,11 +88,11 @@ Los siguientes valores se basan en investigaciones previas y literatura revisada
 
 ---
 
-La solución integra sensores en un bus I2C y entradas analógicas, ejecuta una lógica de fusión de datos recompilados por distintos sensores específicos a cada variable física, para puntuar el riesgo y activa actuadores según el nivel resultante. Se contemplan módulos de adquisición, filtrado, decisión y notificación.
+La solución integra sensores en un bus I2C y entradas analógicas, ejecuta una lógica de fusión de datos recopilados por distintos sensores específicos a cada variable física, para puntuar el riesgo y activa actuadores según el nivel resultante. Se contemplan módulos de adquisición, filtrado, decisión y notificación.
 
 Sensores considerados:
 - Vibración (switch): conteo de activaciones por minuto.
-- Inclinacion (MPU6050): inclinacion en grados
+- Inclinación (MPU6050): inclinación en grados
 - Lluvia (módulo analógico/digital): intensidad y estado de lluvia.
 - Humedad de suelo (YL-100): medición de humedad relativa.
 - Temperatura ambiente: medición de temperatura y gradientes.
@@ -100,7 +100,7 @@ Sensores considerados:
 Actuadores considerados:
 - Pantalla/indicadores LED (idealmente I2C u opcionalmente GPIO).
 - Buzzer (GPIO/PWM) con distintos patrones según el nivel.
-- Leds: verde (normal), amarillo (precaucion), naranja (alerta), rojo (emergencia)
+- Leds: verde (normal), amarillo (precaución), naranja (alerta), rojo (emergencia)
 
 El detalle de parámetros y umbrales se encuentra en `ParametrosYsensores.md`.
 
@@ -114,10 +114,10 @@ El detalle de parámetros y umbrales se encuentra en `ParametrosYsensores.md`.
 
 ## **Arquitectura propuesta**
 
-![Diagrama de alto nievel](/Images/Diagrama%20de%20alto%20nivel%20challenge.png)
+![Diagrama de alto nivel](/Images/Diagrama%20de%20alto%20nivel%20challenge.png)
 
 Flujo de datos:
-1) Obtencio de datos periódico de sensores 
+1) Obtención de datos periódico de sensores 
 2) Filtrado y cálculo de variables físicas.
 3) Puntuación de riesgo por reglas y tabla de decisión.
 4) Accionamiento de alertas locales y generación de eventos.
@@ -127,7 +127,7 @@ Notas de implementación:
 - Usar resistencias pull-up en SDA/SCL (típ. 4.7 kΩ) si no están en los módulos.
 - Mantener cables I2C cortos o usar topología adecuada para ambientes ruidosos.
 
-## **Desarrollo tecnico modular**
+## **Desarrollo técnico modular**
 
 ![Diagrama de conexiones](/Images/conexionesesp32.svg)
 
@@ -151,7 +151,7 @@ Diagrama de flujo (general):
 <details>
 <summary>
 
-## **Configuracion experimental**
+## **Configuración experimental**
 </summary>
 
 
@@ -204,13 +204,13 @@ L:xxxx  H:xx T:xx
 
 ### 5. Estructura del código (alto nivel)
 
-- `detectHardware()` — Inicializa I2C, LCD, MPU, DS18B20, define entradas/salidas, verifica ADC cableado.
-- `leer*()` — Lecturas por sensor. Cuando faltan: devuelven **NAN** (o -1 en lluvia RAW).
-- `score*()` — Convierte cada lectura a **score 0..100** según umbrales.
-- `calcularRiesgoFusion()` — Aplica **pesos** y **sinergias**.
-- `nivelPorScore()` — Convierte score a nivel 0..3.
-- `drawMetrics()` / `drawAlert()` — Pantallas LCD.
-- `motor*_set()` y `simulate_quake()` — Control de motores por puente H.
+- `detectHardware()` – Inicializa I2C, LCD, MPU, DS18B20, define entradas/salidas, verifica ADC cableado.
+- `leer*()` – Lecturas por sensor. Cuando faltan: devuelven **NAN** (o -1 en lluvia RAW).
+- `score*()` – Convierte cada lectura a **score 0..100** según umbrales.
+- `calcularRiesgoFusion()` – Aplica **pesos** y **sinergias**.
+- `nivelPorScore()` – Convierte score a nivel 0..3.
+- `drawMetrics()` / `drawAlert()` – Pantallas LCD.
+- `motor*_set()` y `simulate_quake()` – Control de motores por puente H.
 - Buzzer y LEDs: patrones por nivel en `beepPattern()` y `setLEDs()`.
 </details>
 
@@ -232,7 +232,7 @@ El sistema desarrollado integra exitosamente 5 sensores principales en una arqui
 - **Rain Detection Module**: Monitorea intensidad de lluvia mediante sensor analógico/digital
 - **YL-100 Soil Moisture**: Mide humedad del suelo en porcentaje relativo
 - **Temperature Sensor (DS18B20)**: Registra temperatura ambiente y gradientes térmicos
-- **MPU6050 (gyro sensor)**: Mide el nivel de inclinacion del suelo.
+- **MPU6050 (gyro sensor)**: Mide el nivel de inclinación del suelo.
 
 ### **Protocolo de Comunicación:**
 - **Bus I2C** para LCD (0x27/0x3F) y comunicación entre dispositivos
@@ -343,7 +343,7 @@ La lógica de fusión integra cinco variables principales del sistema:
 El diseño basado en ESP32 demostró ser una plataforma robusta y versátil para aplicaciones IoT de monitoreo ambiental. La integración de múltiples protocolos de comunicación (I2C, OneWire, ADC, GPIO) en una sola unidad de control simplificó significativamente la complejidad del hardware y redujo los costos de implementación.
 
 #### **2. Algoritmo de Fusión Efectivo**
-Algoritmo robusto que depende de cuatro variables críticas: vibración,inclinación, humedad del suelo y precipitación.
+Algoritmo robusto que depende de cuatro variables críticas: vibración, inclinación, humedad del suelo y precipitación.
 
 #### **3. Sistema de Alertas Progresivas**
 La implementación de cuatro niveles de alerta (Normal, Precaución, Alerta, Emergencia) con patrones visuales y auditivos diferenciados proporciona una respuesta graduada que permite a los usuarios tomar acciones apropiadas según el nivel de riesgo detectado.
@@ -354,7 +354,7 @@ El sistema de detección automática de hardware y calibración inicial reduce s
 ## **Retos Identificados y Superados**
 
 ### **1. Adaptación por Ausencia de MPU6050**
-**Reto**: En el kit entregado para la clase, este sensor no leia los datos completamente.
+**Reto**: En el kit entregado para la clase, este sensor no leía los datos completamente.
 **Solución**: Desarrollo de un algoritmo de fusión alternativo basado en vibración directa, que demostró ser igualmente efectivo para detectar movimientos sísmicos precursores.
 
 ### **2. Calibración de Umbrales**
