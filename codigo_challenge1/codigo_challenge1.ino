@@ -65,7 +65,7 @@ static inline float clampf(float x, float lo, float hi) {
 #define LCD_ADDR2 0x3F
 
 // Sensores
-const int PIN_VIBRATION = 32; // SIG del modulo de vibracion
+const int PIN_VIBRATION = 34; // SIG del modulo de vibracion
 const int PIN_RAIN_A    = 36; // lluvia analogica
 const int PIN_RAIN_D    = 4;  // lluvia digital (comparador)
 const int PIN_SOIL_A    = 39; // YL-100 AO
@@ -89,8 +89,8 @@ const int PIN_BUZZER = 25;
      AIN1, AIN2, PWMA (ENA) -> Motor A
      BIN1, BIN2, PWMB (ENB) -> Motor B
 */
-const int AIN1 = 16;
-const int AIN2 = 17;
+const int AIN1 = 33;
+const int AIN2 = 32;
 const int PWMA = 18; // PWM canal A
 
 const int BIN1 = 19;

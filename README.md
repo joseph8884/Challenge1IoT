@@ -255,18 +255,21 @@ Temperatura: 10-30°C (Normal) → <10°C o gradiente >2°C/min (Riesgo)
 ### **Matriz de Decisión Completa:**
 La lógica de fusión integra cinco variables principales del sistema:
 
+**Nota importante**: Vibración Alta = >5 activaciones por minuto, lo cual indica actividad sísmica significativa que requiere atención inmediata.
+
 | Inclinación | Vibración | Humedad | Lluvia | Temperatura | Resultado |
 |-------------|-----------|---------|--------|-------------|-----------|
-| Normal | Baja | Baja | Baja | Normal | **NORMAL** 🟢 |
-| Normal | Alta | Baja | Baja | Normal | **PRECAUCIÓN** 🟡 |
+| Normal | Baja (0-2/min) | Baja | Baja | Normal | **NORMAL** 🟢 |
+| Normal | Media (3-5/min) | Baja | Baja | Normal | **PRECAUCIÓN** 🟡 |
 | Normal | Baja | Alta | Moderada | Normal | **PRECAUCIÓN** 🟡 |
 | Anómala | Baja | Baja | Baja | Normal | **PRECAUCIÓN** 🟡 |
 | Normal | Baja | Baja | Baja | Riesgo | **PRECAUCIÓN** 🟡 |
-| Normal | Alta | Alta | Moderada | Normal | **ALERTA** 🟠 |
-| Anómala | Alta | Baja | Moderada | Normal | **ALERTA** 🟠 |
-| Normal | Alta | Alta | Torrencial | Riesgo | **ALERTA** 🟠 |
-| Anómala | Alta | Alta | Moderada | Normal | **EMERGENCIA** 🔴 |
-| Anómala | Alta | Alta | Torrencial | Riesgo | **EMERGENCIA** 🔴 |
+| Normal | Alta (>5/min) | Baja | Baja | Normal | **ALERTA** 🟠 |
+| Normal | Media | Alta | Moderada | Normal | **ALERTA** 🟠 |
+| Anómala | Media | Baja | Moderada | Normal | **ALERTA** 🟠 |
+| Normal | Alta | Alta | Torrencial | Riesgo | **EMERGENCIA** � |
+| Anómala | Alta | Cualquiera | Cualquiera | Cualquiera | **EMERGENCIA** 🔴 |
+| Cualquiera | Alta (>5/min) | Alta | Moderada+ | Cualquiera | **EMERGENCIA** 🔴 |
 
 ## **Resultados de Funcionamiento**
 
